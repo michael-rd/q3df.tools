@@ -3,6 +3,7 @@ package org.q3df.test.demo;
 import org.junit.Assert;
 import org.junit.Test;
 import org.q3df.demo.Q3HuffmanCoder;
+import org.q3df.demo.Utils;
 
 /**
  * Created by michael on 08.06.17.
@@ -23,6 +24,12 @@ public class HuffmanTest {
         Assert.assertEquals("6E243BB43B92A5110000000000000000", encoder.dumpBuffer());
 
         System.out.println(encoder.dumpBuffer());
+
+        Q3HuffmanCoder.Decoder decoder = Q3HuffmanCoder.decoder(encoder.buffer());
+
+        for (int b : bytesToWrite) {
+            Assert.assertEquals(b, decoder.readByte());
+        }
     }
 
     @Test
@@ -35,6 +42,13 @@ public class HuffmanTest {
         encoder.writeShort(0x0500); // 0, 5
 
         Assert.assertEquals("6E243BB43B92A5110000000000000000", encoder.dumpBuffer());
+
+        Q3HuffmanCoder.Decoder decoder = Q3HuffmanCoder.decoder(encoder.buffer());
+
+        //System.out.println (Integer.toHexString(decoder.readInt()));
+        Assert.assertEquals(0x03020100, decoder.readInt());
+        Assert.assertEquals(0x50FF1404, decoder.readInt());
+        Assert.assertEquals(0x0500, decoder.readShort());
     }
 
 
@@ -45,5 +59,27 @@ public class HuffmanTest {
         encoder.writeString("Hello World!");
 
         Assert.assertEquals("3D619898B3F78CB3479897A611000000", encoder.dumpBuffer());
+
+        Q3HuffmanCoder.Decoder decoder = Q3HuffmanCoder.decoder(encoder.buffer());
+
+        Assert.assertEquals("Hello World!", decoder.readString());
+    }
+
+    @Test
+    public void test004() {
+        Q3HuffmanCoder.Encoder encoder = Q3HuffmanCoder.encoder(16);
+
+        encoder.writeFload(3.14f);
+        encoder.writeFload(89.20170609f);
+        encoder.writeAngle16(49.2f);
+
+        Assert.assertEquals("20EA3D9F013DED919F2B110000000000", encoder.dumpBuffer());
+
+        Q3HuffmanCoder.Decoder decoder = Q3HuffmanCoder.decoder(encoder.buffer());
+
+       // System.out.println (decoder.readFloat());
+
+        Assert.assertEquals(3.14f, decoder.readFloat(), 0f);
+        Assert.assertEquals(89.20170609f, decoder.readFloat(), 0f);
     }
 }

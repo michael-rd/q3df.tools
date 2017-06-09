@@ -44,8 +44,8 @@ public class Q3HuffmanCoder {
 
     static int BIT_POS[] = new int[32];
     static int BIT_POS_REV[] = new int[32];
-    static int BIT_MASK[] = new int[32];
-    static int BIT_MASK_REV[] = new int[32];
+//    static int BIT_MASK[] = new int[32];
+//    static int BIT_MASK_REV[] = new int[32];
 
     static {
         // prepare table
@@ -66,8 +66,8 @@ public class Q3HuffmanCoder {
             BIT_POS[i] = mask;
             BIT_POS_REV[31-i] = mask;
 
-            BIT_MASK[i] = 0xFFFFFFFF ^ mask;
-            BIT_MASK_REV[31-i] = 0xFFFFFFFF ^ mask;
+//            BIT_MASK[i] = 0xFFFFFFFF ^ mask;
+//            BIT_MASK_REV[31-i] = 0xFFFFFFFF ^ mask;
 
             mask <<= 1;
         }
@@ -240,7 +240,9 @@ public class Q3HuffmanCoder {
 
         public boolean writeData (byte[] data, int length) {
             int written = 0;
-            for (int i = 0; i < Math.min(length, data.length); i++) {
+            length = Math.min(length, data.length);
+
+            for (int i = 0; i < length; i++) {
                 if (writeBitsRaw(huff_paths[0xFF & data[i]], sym_size[0xFF & data[i]]) > 0) {
                     written++;
                 }
@@ -322,7 +324,7 @@ public class Q3HuffmanCoder {
         }
 
         private int readBitValue () {
-            int bit = ((currByte & BIT_MASK[readBitsPos&7]) != 0) ? 1 : 0;
+            int bit = ((currByte & BIT_POS[readBitsPos&7]) != 0) ? 1 : 0;
 
             readBitsPos++;
             if ((readBitsPos & 7) == 0) {
@@ -338,17 +340,21 @@ public class Q3HuffmanCoder {
         }
 
         private int decodeByte () {
-            int sym_path = 1;
+            int sym_path = 0;
+            int rest = 0;
             int decoded = NYT;
-
+            int bitIdx = 0;
             while (decoded == NYT) {
-                sym_path <<= 1;
-                sym_path |= readBitValue();
+                if (readBitValue() != 0)
+                    rest |= BIT_POS[bitIdx];
+
+                sym_path = BIT_POS[bitIdx+1] | rest;
 
                 if (sym_path > MAX_PATH_VALUE)
                     //throw new RuntimeException("Stream is corrupted");
                     return 0;
 
+                bitIdx++;
                 decoded = sym_table[sym_path];
             }
 
@@ -367,7 +373,7 @@ public class Q3HuffmanCoder {
 
             if (fragmentBits != 0) {
                 for (int i = 0; i < fragmentBits; i++) {
-                    value |= readBitValue() != 0 ? BIT_MASK[i] : 0;
+                    value |= readBitValue() != 0 ? BIT_POS[i] : 0;
                 }
 
                 bits -= fragmentBits;
@@ -479,18 +485,18 @@ public class Q3HuffmanCoder {
 
 
     public static int ANGLE2SHORT (float x) {
-        return ((int)(x*65536/360)) & 65535;
+        return ((int)(x*65536.0f/360.0f)) & 65535;
     }
 
     public static float SHORT2ANGLE (int x) {
-        return (float)(x*(360.0/65536.0));
+        return ((float)x*(360.0f/65536.0f));
     }
 
 
     public static Encoder encoder (int capacity) {
         return new Encoder(capacity);
     }
-
+    public static Decoder decoder (byte[] data) {return new Decoder(data, data.length); }
 
 
 //    public static void main(String[] args) {
