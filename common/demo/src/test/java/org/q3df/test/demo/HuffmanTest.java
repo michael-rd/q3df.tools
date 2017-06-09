@@ -82,4 +82,21 @@ public class HuffmanTest {
         Assert.assertEquals(3.14f, decoder.readFloat(), 0f);
         Assert.assertEquals(89.20170609f, decoder.readFloat(), 0f);
     }
+
+    @Test
+    public void test005() {
+        Q3HuffmanCoder.Encoder encoder = Q3HuffmanCoder.encoder(16);
+
+        encoder.writeBits(3251, 12);
+        encoder.writeBits(823, 10);
+        encoder.writeBits(21972, 15);
+
+        Assert.assertEquals("33C0C5518B0600000000000000000000", encoder.dumpBuffer());
+
+        Q3HuffmanCoder.Decoder decoder = Q3HuffmanCoder.decoder(encoder.buffer());
+
+        Assert.assertEquals(3251, decoder.readBits(12));
+        Assert.assertEquals(823, decoder.readBits(10));
+        Assert.assertEquals(21972, decoder.readBits(15));
+    }
 }

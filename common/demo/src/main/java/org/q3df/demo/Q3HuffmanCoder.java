@@ -361,7 +361,7 @@ public class Q3HuffmanCoder {
             return decoded;
         }
 
-        private int readBits (int bits) {
+        public int readBits (int bits) {
 
             int value = 0;
             boolean neg = bits < 0;
