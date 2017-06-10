@@ -497,6 +497,7 @@ public class Q3HuffmanCoder {
         return new Encoder(capacity);
     }
     public static Decoder decoder (byte[] data) {return new Decoder(data, data.length); }
+    public static Decoder decoder (byte[] data, int limit) {return new Decoder(data, limit); }
 
 
 //    public static void main(String[] args) {
