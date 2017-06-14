@@ -4,17 +4,13 @@ package org.q3df.test.demo;
 import org.q3df.demo.Const;
 import org.q3df.demo.En_SVC;
 import org.q3df.demo.Q3HuffmanCoder;
-import org.q3df.demo.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInputStream;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.IntBuffer;
 import java.util.Arrays;
 
 import static org.q3df.demo.Const.MAX_GENTITIES;
@@ -87,6 +83,15 @@ public class MainScratch {
 
     }
 
+
+    private static void parseCommandString (Q3HuffmanCoder.Decoder decoder) {
+        logger.debug("command = {}", En_SVC.SERVERCOMMAND);
+        int sequence = decoder.readLong();
+        String command = decoder.readString();
+
+        logger.debug("server cmd, seq={}, cmd={}", sequence, command);
+    }
+
     public static void parsePackets (byte[] msgBuffer, int msgLen) {
         //
         //  CL_ParseServerMessage
@@ -113,7 +118,7 @@ public class MainScratch {
             switch (cmd) {
                // case NOP:
                 case SERVERCOMMAND:
-                    logger.debug("command = {}", cmd);
+                    parseCommandString (decoder);
                     break;
                 case GAMESTATE:
                     logger.debug("command = {}", cmd);

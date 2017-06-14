@@ -17,6 +17,10 @@ public class Q3HuffmanCoder {
     private static final byte PERCENT_CHAR_BYTE = 37;
     private static final byte DOT_CHAR_BYTE = 46;
 
+    static final byte entityStateFieldSize[] = {
+
+    };
+
     static final int huff_paths[] = {
             0x0006, 0x003B, 0x00C8, 0x00EC, 0x01A1, 0x0111, 0x0090, 0x007F, 0x0035, 0x00B4, 0x00E9, 0x008B, 0x0093, 0x006D, 0x0139, 0x02AC,
             0x00A5, 0x0258, 0x03F0, 0x03F8, 0x05DD, 0x07F3, 0x062B, 0x0723, 0x02F4, 0x058D, 0x04AB, 0x0763, 0x05EB, 0x0143, 0x024F, 0x01D4,
@@ -480,6 +484,47 @@ public class Q3HuffmanCoder {
             for (int i = 0; i < Math.min(len,data.length); i++) {
                 data[i] = (byte)readByte();
             }
+        }
+
+        public void skipDeltaEntity () {
+            int startbit;
+
+// orig-source
+//            if ( msg->bit == 0 ) {
+//                startBit = msg->readcount * 8 - GENTITYNUM_BITS;
+//            } else {
+//                startBit = ( msg->readcount - 1 ) * 8 + msg->bit - GENTITYNUM_BITS;
+//            }
+// translated:
+            if (this.readBitsPos == 0)
+                startbit = position * 8 - Const.GENTITYNUM_BITS;
+            else
+                startbit = (position-1)*8 + readBitsPos - Const.GENTITYNUM_BITS;
+
+
+            // check for a remove
+//  orig:   if ( MSG_ReadBits( msg, 1 ) == 1 ) {
+            if (readBitValue() == 1) {
+                // clear state and return
+                return;
+            }
+
+            // check for no delta
+            if (readBitValue() == 0) {
+                //
+                return;
+            }
+
+//orid:       numFields = ARRAY_LEN( entityStateFields );
+//            lc = MSG_ReadByte(msg);
+//
+//            if ( lc > numFields || lc < 0 ) {
+//                Com_Error( ERR_DROP, "invalid entityState field count" );
+//            }
+// translated:
+            int lc = readByte();
+
+
         }
     }
 
