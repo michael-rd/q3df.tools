@@ -3,7 +3,6 @@ package org.q3df.test.demo;
 import org.junit.Assert;
 import org.junit.Test;
 import org.q3df.demo.Q3HuffmanCoder;
-import org.q3df.demo.Utils;
 
 /**
  * Created by michael on 08.06.17.

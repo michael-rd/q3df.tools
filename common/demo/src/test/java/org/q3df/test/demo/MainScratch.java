@@ -1,7 +1,7 @@
 package org.q3df.test.demo;
 
 
-import org.q3df.demo.Const;
+import org.q3df.common.Const;
 import org.q3df.demo.En_SVC;
 import org.q3df.demo.Q3HuffmanCoder;
 import org.slf4j.Logger;
@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-import static org.q3df.demo.Const.MAX_GENTITIES;
+import static org.q3df.common.Const.MAX_GENTITIES;
 
 /**
  * Created by Mike on 06.06.2017.

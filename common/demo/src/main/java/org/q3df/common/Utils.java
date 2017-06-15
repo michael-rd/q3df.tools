@@ -1,6 +1,7 @@
-package org.q3df.demo;
+package org.q3df.common;
 
 import java.nio.ByteBuffer;
+import java.util.EnumSet;
 
 public class Utils {
 
@@ -28,5 +29,14 @@ public class Utils {
                     + Character.digit(hexString.charAt(i+1), 16));
         }
         return data;
+    }
+
+    public static <E extends Enum<E>> E enumByOrdinal (Class<E> clazz, int ord){
+        for(E en : EnumSet.allOf(clazz)){
+            if(en.ordinal() == ord){
+                return en;
+            }
+        }
+        return null;
     }
 }
