@@ -59,8 +59,8 @@ public class ReaderFactory {
     } ...
   */
         return decoder -> {
-            if (decoder.readBits(1) == 0)
-                return 0.0f;
+//            if (decoder.readBits(1) == 0)
+//                return 0.0f;
 
             if (decoder.readBits(1) == 0) {
                 int trunc = decoder.readBits(Const.FLOAT_INT_BITS);

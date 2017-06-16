@@ -32,12 +32,15 @@ public class MessageTest {
 
         Assert.assertTrue(decoder.readDeltaEntity(est, newnumber));
 
+        System.out.println(est.pos.trBase.vect[0]);
+
         Assert.assertEquals(0x45678912, est.pos.trTime);
-//        Assert.assertEquals(0x78EFABCD, est.pos.trDuration);
-//        Assert.assertEquals(0xBBCCDDEE, est.apos.trTime);
+        Assert.assertEquals(0x78EFABCD, est.pos.trDuration);
+        Assert.assertEquals(0xBBCCDDEE, est.apos.trTime);
 
 //        apos.trDelta[1] = 7.33f;
 
+        Assert.assertEquals(0.56f, est.pos.trBase.vect[0], 0.001);
         Assert.assertEquals(7.33f, est.apos.trDelta.vect[1], 0.001);
     }
 
