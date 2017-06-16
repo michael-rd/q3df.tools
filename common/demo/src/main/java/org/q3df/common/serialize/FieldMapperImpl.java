@@ -1,19 +1,18 @@
 package org.q3df.common.serialize;
 
-import org.q3df.common.struct.EntityState;
-import org.q3df.demo.Q3HuffmanCoder;
+import org.q3df.common.msg.Q3HuffmanCoder;
 
-class FieldMapperImpl<T> implements FieldMapper {
+class FieldMapperImpl<E,T> implements FieldMapper<E> {
     ValueReader<T> valueReader;
-    ValueSetter<T> setter;
-    int myId;
+    ValueSetter<E, T> setter;
+    T defaultValue;
     String name;
 
-    public FieldMapperImpl(int myId, String name, ValueReader<T> reader, ValueSetter<T> setter) {
-        this.myId = myId;
+    public FieldMapperImpl(String name, ValueReader<T> reader, ValueSetter<E, T> setter, T defaultValue) {
         this.valueReader = reader;
         this.setter = setter;
         this.name = name;
+        this.defaultValue = defaultValue;
     }
 
     @Override
@@ -22,12 +21,12 @@ class FieldMapperImpl<T> implements FieldMapper {
     }
 
     @Override
-    public int id() {
-        return this.myId;
+    public void reset(E state) {
+        setter.setValue(state, defaultValue);
     }
 
     @Override
-    public void read(Q3HuffmanCoder.Decoder decoder, EntityState state) {
+    public void read(Q3HuffmanCoder.Decoder decoder, E state) {
         setter.setValue(state, valueReader.read(decoder));
     }
 }

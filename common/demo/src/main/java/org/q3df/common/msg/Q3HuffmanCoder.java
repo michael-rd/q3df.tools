@@ -1,7 +1,11 @@
-package org.q3df.demo;
+package org.q3df.common.msg;
 
 import org.q3df.common.Const;
 import org.q3df.common.Utils;
+import org.q3df.common.serialize.FieldMapper;
+import org.q3df.common.serialize.FieldMapperFactory;
+import org.q3df.common.struct.EntityState;
+import org.q3df.common.struct.PlayerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -488,47 +492,115 @@ public class Q3HuffmanCoder {
             }
         }
 
-        public void skipDeltaEntity () {
-            int startbit;
+        public boolean skipDeltaEntity () {
+            return readDeltaEntity(new EntityState(), 0);
+        }
 
-// orig-source
-//            if ( msg->bit == 0 ) {
-//                startBit = msg->readcount * 8 - GENTITYNUM_BITS;
-//            } else {
-//                startBit = ( msg->readcount - 1 ) * 8 + msg->bit - GENTITYNUM_BITS;
-//            }
-// translated:
-            if (this.readBitsPos == 0)
-                startbit = position * 8 - Const.GENTITYNUM_BITS;
-            else
-                startbit = (position-1)*8 + readBitsPos - Const.GENTITYNUM_BITS;
-
-
+        public boolean readDeltaEntity (EntityState state, int number) {
             // check for a remove
 //  orig:   if ( MSG_ReadBits( msg, 1 ) == 1 ) {
             if (readBitValue() == 1) {
+                state.number = Const.MAX_GENTITIES - 1;
                 // clear state and return
-                return;
+                return true;
             }
 
             // check for no delta
             if (readBitValue() == 0) {
                 //
-                return;
+                state.number = number;
+                return true;
             }
 
-//orid:       numFields = ARRAY_LEN( entityStateFields );
-//            lc = MSG_ReadByte(msg);
-//
-//            if ( lc > numFields || lc < 0 ) {
-//                Com_Error( ERR_DROP, "invalid entityState field count" );
-//            }
-// translated:
             int lc = readByte();
 
+            if (lc < 0 || lc > FieldMapperFactory.getEntityStateFieldNum()) {
+                logger.error("invalid entityState field count: {}", lc);
+                return false;
+            }
 
+            state.number = number;
+            for (int i = 0; i < lc; i++) {
+                if (readBits(1) == 0) {
+                    //no change
+                    continue;
+                }
+
+                FieldMapper mapper = FieldMapperFactory.entStateFieldMapper(i);
+
+                if (readBits(1) == 0)
+                    mapper.reset(state);
+                else
+                    mapper.read(this, state);
+            }
+
+            return true;
+        }
+
+        public boolean readDeltaPlayerState (PlayerState state) {
+            int lc = readByte();
+
+            if (lc < 0 || lc > FieldMapperFactory.getPlayerStateFieldNum()) {
+                logger.error("invalid playerState field count: {}", lc);
+                return false;
+            }
+
+            for (int i = 0; i < lc; i++) {
+                if (readBits(1) == 0) {
+                    // no change;
+                    continue;
+                }
+
+                FieldMapperFactory.playerStateFieldMapper(i).read(this, state);
+            }
+
+            // read arrays
+            if (readBits(1) != 0) {
+
+                //parse stats
+                if (readBits(1) != 0) {
+                    pstArrayRead(state.stats, Const.MAX_STATS);
+                }
+
+                // parse persistant stats
+                if (readBits(1) != 0) {
+                    pstArrayRead(state.persistant, Const.MAX_PERSISTANT);
+                }
+
+                // parse ammo
+                if (readBits(1) != 0) {
+                    pstArrayRead(state.ammo, Const.MAX_WEAPONS);
+                }
+
+                // parse powerups
+                if (readBits(1) != 0) {
+                    pstLongArrayRead(state.powerups, Const.MAX_POWERUPS);
+                }
+            }
+
+            return true;
+        }
+
+        private void pstArrayRead (int[] arr, int maxbits) {
+            int _bits = readBits(maxbits);
+            for (int i = 0; i < maxbits; i++) {
+                if ((_bits & BIT_POS[i]) != 0) {
+                    arr[i] = readShort();
+                }
+            }
+        }
+
+        private void pstLongArrayRead (int[] arr, int maxbits) {
+            int _bits = readBits(maxbits);
+            for (int i = 0; i < maxbits; i++) {
+                if ((_bits & BIT_POS[i]) != 0) {
+                    arr[i] = readLong();
+                }
+            }
         }
     }
+
+
 
 
     public static int ANGLE2SHORT (float x) {

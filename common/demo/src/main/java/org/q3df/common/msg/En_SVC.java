@@ -1,4 +1,4 @@
-package org.q3df.demo;
+package org.q3df.common.msg;
 
 public enum En_SVC {
 

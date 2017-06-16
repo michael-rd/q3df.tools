@@ -2,8 +2,11 @@ package org.q3df.test.demo;
 
 
 import org.q3df.common.Const;
-import org.q3df.demo.En_SVC;
-import org.q3df.demo.Q3HuffmanCoder;
+import org.q3df.common.msg.En_SVC;
+import org.q3df.common.msg.Q3HuffmanCoder;
+import org.q3df.common.struct.CLSnapshot;
+import org.q3df.common.struct.EntityState;
+import org.q3df.common.struct.PlayerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,20 +30,20 @@ public class MainScratch {
 
     public static void parseGameState (Q3HuffmanCoder.Decoder decoder) {
         int serverCmdSequence = decoder.readLong();
+
         while (true) {
             int cmdId = decoder.readByte();
 
             En_SVC cmd = En_SVC.find(cmdId);
 
             if (cmd == null) {
-                logger.debug("unknown command {}", cmdId);
+                logger.error ("unknown command {}", cmdId);
                 return;
             }
 
-            if (cmd == En_SVC.EOF)
-            {
+            if (cmd == En_SVC.EOF) {
                 logger.debug("EOF gamestate");
-                return;
+                break;
             }
 
             if (cmd == En_SVC.CONFIGSTRING) {
@@ -67,29 +70,61 @@ public class MainScratch {
                     return;
                 }
 
-                return;
-                // @TODO impl
-//                Com_Memset (&nullstate, 0, sizeof(nullstate));
-//                es = &cl.entityBaselines[ newnum ];
-//                MSG_ReadDeltaEntity( msg, &nullstate, es, newnum );
+                EntityState es = new EntityState();
+                if (!decoder.readDeltaEntity(es, newnum)) {
+                    logger.error("unable to parse delta-entity state");
+                    return;
+                }
+                else
+                    logger.debug("delta-entity parsed: {}", newnum);
             }
             else {
-                logger.error("bad command {}", cmd);
+                logger.error("Parse GameState: bad command {}", cmd);
                 return;
             }
         }
 
-        /// impl
+        int clientNum = decoder.readLong();
+        int checksumFeed = decoder.readLong();
 
+        logger.debug("Parse GameState end: clientNum={}, checksumFeed={}", clientNum, checksumFeed);
     }
 
 
     private static void parseCommandString (Q3HuffmanCoder.Decoder decoder) {
-        logger.debug("command = {}", En_SVC.SERVERCOMMAND);
+//        logger.debug("command = {}", En_SVC.SERVERCOMMAND);
         int sequence = decoder.readLong();
         String command = decoder.readString();
 
         logger.debug("server cmd, seq={}, cmd={}", sequence, command);
+    }
+
+
+    // CL_ParseSnapshot
+    private static void parseSnapshot (Q3HuffmanCoder.Decoder decoder) {
+        logger.debug("parse snapshot");
+        CLSnapshot snapshot = new CLSnapshot();
+
+        snapshot.serverTime = decoder.readLong();
+
+        int deltaNum = decoder.readByte();
+
+        snapshot.snapFlags = decoder.readByte();
+
+        // read areamask
+        int len = decoder.readByte();
+
+        if (len > snapshot.areamask.length) {
+            logger.error("CL_ParseSnapshot: Invalid size {} for areamask", len);
+            return;
+        }
+
+        decoder.readData(snapshot.areamask, len);
+        decoder.readDeltaPlayerState (new PlayerState());
+
+        //CL_ParsePacketEntities( msg, old, &newSnap );
+
+        //logger.debug("CL-snapshot: {}, delta: {}, ping: {}", snapshot.messageNum, snapshot.deltaNum, snapshot.ping);
     }
 
     public static void parsePackets (byte[] msgBuffer, int msgLen) {
@@ -114,7 +149,6 @@ public class MainScratch {
                 return;
             }
 
-
             switch (cmd) {
                // case NOP:
                 case SERVERCOMMAND:
@@ -125,15 +159,17 @@ public class MainScratch {
                     parseGameState(decoder);
                     break;
                 case SNAPSHOT:
+                    logger.debug("command = {}", cmd);
+                    parseSnapshot(decoder);
                     break;
              //   case DOWNLOAD:
                 default:
                         logger.warn("wrong command {}", cmd);
                         return;
             }
-
-            return;
         }
+
+        logger.debug("end of message packet");
     }
 
     public static void main (String argv[]) {

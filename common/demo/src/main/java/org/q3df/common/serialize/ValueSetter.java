@@ -1,7 +1,5 @@
 package org.q3df.common.serialize;
 
-import org.q3df.common.struct.EntityState;
-
-public interface ValueSetter<T> {
-    void setValue (EntityState state, T value);
+public interface ValueSetter<E,T> {
+    void setValue (E state, T value);
 }

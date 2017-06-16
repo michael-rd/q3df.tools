@@ -16,7 +16,12 @@ public class Const {
     public static final int FLOAT_INT_BITS = 13;
     public static final int FLOAT_INT_BIAS = (1<<(FLOAT_INT_BITS-1));
 
+    // q_shared.h
     public static final int MAX_POWERUPS = 16;
     public static final int MAX_WEAPONS = 16;
-
+    public static final int MAX_STATS = 16;
+    public static final int MAX_PERSISTANT = 16;
+    public static final int PS_PMOVEFRAMECOUNTBITS = 6;
+    public static final int MAX_PS_EVENTS = 2;
+    public static final int MAX_MAP_AREA_BYTES = 16;
 }
