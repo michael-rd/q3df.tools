@@ -16,6 +16,11 @@ public class Const {
     public static final int FLOAT_INT_BITS = 13;
     public static final int FLOAT_INT_BIAS = (1<<(FLOAT_INT_BITS-1));
 
+    public static final int PACKET_BACKUP = 32;
+    public static final int PACKET_MASK = PACKET_BACKUP-1;
+
+    public static final int MAX_RELIABLE_COMMANDS = 64;
+
     // q_shared.h
     public static final int MAX_POWERUPS = 16;
     public static final int MAX_WEAPONS = 16;
@@ -24,4 +29,13 @@ public class Const {
     public static final int PS_PMOVEFRAMECOUNTBITS = 6;
     public static final int MAX_PS_EVENTS = 2;
     public static final int MAX_MAP_AREA_BYTES = 16;
+
+    // cg_public.h
+    public static final int CMD_BACKUP = 64;
+    public static final int CMD_MASK = CMD_BACKUP-1;
+
+
+    // client.h
+    public static final int MAX_PARSE_ENTITIES = 2048;
 }
+

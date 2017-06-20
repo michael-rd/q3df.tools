@@ -5,8 +5,10 @@ import org.q3df.common.Const;
 import org.q3df.common.msg.En_SVC;
 import org.q3df.common.msg.Q3HuffmanCoder;
 import org.q3df.common.struct.CLSnapshot;
+import org.q3df.common.struct.ClientState;
 import org.q3df.common.struct.EntityState;
 import org.q3df.common.struct.PlayerState;
+import org.q3df.demo.DemoParsers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +30,7 @@ public class MainScratch {
 
     private static Logger logger = LoggerFactory.getLogger(MainScratch.class);
 
-    public static void parseGameState (Q3HuffmanCoder.Decoder decoder) {
+    public static void parseGameState (Q3HuffmanCoder.Decoder decoder, ClientState clientState) {
         int serverCmdSequence = decoder.readLong();
 
         while (true) {
@@ -54,13 +56,9 @@ public class MainScratch {
                 }
 
                 String configString = decoder.readBigString();
-
-// @FIXME add check in java
-//                if ( len + 1 + cl.gameState.dataCount > MAX_GAMESTATE_CHARS ) {
-//                    Com_Error( ERR_DROP, "MAX_GAMESTATE_CHARS exceeded" );
-//                }
-
                 logger.debug("config string [{}] = {}", key, configString);
+
+                clientState.gameState.put(key, configString);
             }
             else if (cmd == En_SVC.BASELINE) {
                 int newnum = decoder.readBits(Const.GENTITYNUM_BITS);
@@ -70,7 +68,12 @@ public class MainScratch {
                     return;
                 }
 
-                EntityState es = new EntityState();
+                EntityState es = clientState.entityBaselines[newnum];
+                if (es == null) {
+                    es = new EntityState();
+                    clientState.entityBaselines[newnum] = es;
+                }
+
                 if (!decoder.readDeltaEntity(es, newnum)) {
                     logger.error("unable to parse delta-entity state");
                     return;
@@ -79,7 +82,7 @@ public class MainScratch {
                     logger.debug("delta-entity parsed: {}", newnum);
             }
             else {
-                logger.error("Parse GameState: bad command {}", cmd);
+                logger.error("Parse GameState: bad command {} (byte : {})", cmd, cmdId);
                 return;
             }
         }
@@ -102,12 +105,18 @@ public class MainScratch {
 
     // CL_ParseSnapshot
     private static void parseSnapshot (Q3HuffmanCoder.Decoder decoder) {
-        logger.debug("parse snapshot");
+//        logger.debug("parse snapshot");
         CLSnapshot snapshot = new CLSnapshot();
 
         snapshot.serverTime = decoder.readLong();
 
         int deltaNum = decoder.readByte();
+
+        if ( deltaNum == 0) {
+            snapshot.deltaNum = -1;
+        } else {
+            snapshot.deltaNum = snapshot.messageNum - deltaNum;
+        }
 
         snapshot.snapFlags = decoder.readByte();
 
@@ -127,7 +136,7 @@ public class MainScratch {
         //logger.debug("CL-snapshot: {}, delta: {}, ping: {}", snapshot.messageNum, snapshot.deltaNum, snapshot.ping);
     }
 
-    public static void parsePackets (byte[] msgBuffer, int msgLen) {
+    public static void parsePackets (byte[] msgBuffer, int msgLen, ClientState clientState) {
         //
         //  CL_ParseServerMessage
         Q3HuffmanCoder.Decoder decoder = Q3HuffmanCoder.decoder(msgBuffer, msgLen);
@@ -140,7 +149,7 @@ public class MainScratch {
             int cmdId = decoder.readByte();
             En_SVC cmd = En_SVC.find(cmdId);
             if (cmd == null) {
-                logger.warn("unknown command = {}", cmdId);
+//                logger.warn("unknown command = {}", cmdId);
                 return;
             }
 
@@ -156,10 +165,10 @@ public class MainScratch {
                     break;
                 case GAMESTATE:
                     logger.debug("command = {}", cmd);
-                    parseGameState(decoder);
+                    parseGameState(decoder, clientState);
                     break;
                 case SNAPSHOT:
-                    logger.debug("command = {}", cmd);
+//                    logger.debug("command = {}", cmd);
                     parseSnapshot(decoder);
                     break;
              //   case DOWNLOAD:
@@ -180,52 +189,11 @@ public class MainScratch {
         logger.debug("logger is working");
 
         try {
-            InputStream is = url.openStream();
-            ByteBuffer buffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
-            //ByteBuffer dataBuffer = ByteBuffer.allocate(Const.MESSAGE_MAX_SIZE);
-            byte[] msgBuffer = new byte[Const.MESSAGE_MAX_SIZE];
-//            buffer.flip();
-
-            int totalLen = 0;
-
-            while (true) {
-                buffer.clear();
-//                dataBuffer.clear();
-                is.read(buffer.array(),0, 8);
-                Arrays.fill(msgBuffer, (byte)0);
-
-//                logger.debug("buffer content: {}", Utils.toHex(buffer));
-
-                totalLen += 8;
-
-                int sequence = buffer.getInt();
-                int msgLen = buffer.getInt();
-
-                if (sequence == -1 && msgLen == -1) {
-                    logger.debug("EOF is reached in a normal way");
-                    break;
-                }
-
-//                logger.debug("read next message: sequence = {}, size={} ({} - {})", sequence, msgLen, Integer.toHexString(sequence), Integer.toHexString(msgLen));
-
-                if (msgLen > Const.MESSAGE_MAX_SIZE || msgLen <= 0) {
-                    logger.debug("Wow, msg-len is wrong, exit");
-                    break;
-                }
-
-                int readBytes;
-                if ((readBytes = is.read(msgBuffer, 0, msgLen)) != msgLen) {
-                    logger.debug("wtf? unable to read required {} number of bytes, in fact = {}", msgLen, readBytes);
-                }
-                else {
-                    // parse packets from message buffer
-                    parsePackets(msgBuffer, msgLen);
-                }
-
-                totalLen += readBytes;
-            }
-
-            logger.debug("total length = {}", totalLen );
+            ClientState clientState = new ClientState();
+            DemoParsers.parse(url, message -> {
+                parsePackets(message.data(), message.length(), clientState);
+                return true;
+            });
         }
         catch (Exception e) {
             e.printStackTrace();
