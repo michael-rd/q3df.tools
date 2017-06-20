@@ -6,6 +6,7 @@ import org.q3df.common.serialize.FieldMapper;
 import org.q3df.common.serialize.FieldMapperFactory;
 import org.q3df.common.struct.EntityState;
 import org.q3df.common.struct.PlayerState;
+import org.q3df.demo.DemoMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -617,6 +618,7 @@ public class Q3HuffmanCoder {
     }
     public static Decoder decoder (byte[] data) {return new Decoder(data, data.length); }
     public static Decoder decoder (byte[] data, int limit) {return new Decoder(data, limit); }
+    public static Decoder decoder (DemoMessage msg) {return new Decoder(msg.data(), msg.length()); }
 
 
 //    public static void main(String[] args) {
