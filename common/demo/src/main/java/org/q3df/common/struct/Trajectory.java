@@ -12,4 +12,14 @@ public class Trajectory {
         this.trDelta = new Vect3();
         trType = TrType.TR_STATIONARY;
     }
+
+    public Trajectory (Trajectory x) {
+        this.trType = x.trType;
+        this.trTime = x.trTime;
+        this.trDuration = x.trDuration;
+        this.trBase = new Vect3(x.trBase);
+        this.trDelta = new Vect3(x.trDelta);
+    }
+
+
 }

@@ -56,4 +56,35 @@ public class EntityState {
         angles = new Vect3();
         angles2 = new Vect3();
     }
+
+    public void copy (EntityState x) {
+        this.number = x.number;
+        this.eType = x.eType;
+        this.eFlags = x.eFlags;
+        this.pos = new Trajectory(x.pos);
+        this.apos = new Trajectory(x.apos);
+        this.time = x.time;
+        this.time2 = x.time2;
+        this.origin = new Vect3(x.origin);
+        this.origin2 = new Vect3(x.origin2);
+        this.angles = new Vect3(x.angles);
+        this.angles2 = new Vect3(x.angles2);
+        this.otherEntityNum = x.otherEntityNum;
+        this.otherEntityNum2 = x.otherEntityNum2;
+        this.groundEntityNum = x.groundEntityNum;
+        this.constantLight = x.constantLight;
+        this.loopSound = x.loopSound;
+        this.modelindex = x.modelindex;
+        this.modelindex2 = x.modelindex2;
+        this.clientNum = x.clientNum;
+        this.frame = x.frame;
+        this.solid = x.solid;
+        this.event = x.event;
+        this.eventParm = x.eventParm;
+        this.powerups = x.powerups;
+        this.weapon = x.weapon;
+        this.legsAnim = x.legsAnim;
+        this.torsoAnim = x.torsoAnim;
+        this.generic1 = x.generic1;
+    }
 }
