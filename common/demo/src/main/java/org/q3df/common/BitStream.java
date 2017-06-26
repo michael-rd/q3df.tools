@@ -5,7 +5,6 @@ package org.q3df.common;
  */
 public class BitStream {
 
-
     private static int BIT_POS[] = new int[32];
     private static int BIT_POS_REV[] = new int[32];
     private static int BIT_MASK[] = new int[32];
@@ -70,6 +69,18 @@ public class BitStream {
     public boolean isEORD () {
         return readBitPos >= bitsSize;
     }
+
+
+    public int readBit () {
+        if (readBitPos < bitsSize) {
+            int val = (data[readBitPos / 8] & BIT_POS[readBitPos & 7]) != 0 ? 1 : 0;
+            readBitPos++;
+            return val;
+        }
+        else
+            return 0xFFFFFFFF;
+    }
+
 
     public boolean write (boolean isSet) {
         if (writeBitPos < bitsSize) {

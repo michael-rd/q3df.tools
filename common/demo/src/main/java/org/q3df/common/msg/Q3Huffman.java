@@ -1,14 +1,20 @@
 package org.q3df.common.msg;
 
+import org.q3df.common.BitStream;
+
 public class Q3Huffman {
+
+    public static final int EOF_SYM = 0xFFFFFFFF;
 
     public static final class HuffSymbol {
         private int bitsLen;
         private int value;
+//        private int bitPath;
 
         public HuffSymbol(int value, int bitsLen) {
             this.bitsLen = bitsLen;
             this.value = value;
+//            this.bitPath = bitPath;
         }
 
         public int getBitsLen() {
@@ -20,7 +26,7 @@ public class Q3Huffman {
         }
 
         public boolean isValid () {
-            return this.value != 0xFFFFFFFF;
+            return this.value != EOF_SYM;
         }
 
         public static HuffSymbol createFromPath (int path) {
@@ -29,6 +35,33 @@ public class Q3Huffman {
             int val =  mask & path;
             return new HuffSymbol(val, len);
         }
+    }
+
+
+    public static HuffSymbol writeSym (int val, BitStream stream) {
+
+        HuffSymbol huffSymbol = sym[val & 0xFF];
+        val = huffSymbol.getValue();
+        int len = huffSymbol.getBitsLen();
+        while (len > 0) {
+//            stream.write(val & BIT_P)
+        }
+        throw  new RuntimeException("not implemented");
+    }
+
+    public static HuffSymbol readSym (BitStream stream) {
+        int path = 0b10;
+
+        while ((path |= stream.readBit()) <= MAX_PATH_VALUE) {
+            HuffSymbol sym = sym_table [path];
+
+            if (sym.isValid())
+                return sym;
+
+            path <<= 1;
+        }
+
+        return NOT_FOUND;
     }
 
 
@@ -50,7 +83,7 @@ public class Q3Huffman {
 
     static final HuffSymbol sym[];
     static final HuffSymbol sym_table[] ;
-    static final HuffSymbol NOT_FOUND = new HuffSymbol(0xFFFFFFFF, 32);
+    static final HuffSymbol NOT_FOUND = new HuffSymbol(EOF_SYM, 32);
 
 
     static {
@@ -95,6 +128,4 @@ public class Q3Huffman {
         }
         return size;
     }
-
-
 }
