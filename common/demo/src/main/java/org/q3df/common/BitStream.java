@@ -3,7 +3,7 @@ package org.q3df.common;
 /**
  * Created by michael on 21.06.17.
  */
-public class BitStream {
+public class BitStream implements BitStreamReader, BitStreamWriter {
 
     private static int BIT_POS[] = new int[32];
     private static int BIT_POS_REV[] = new int[32];
@@ -42,36 +42,58 @@ public class BitStream {
         this.writeBitPos = 0;
     }
 
-    public int asInt (int byteIdx) {
+    @Override
+    public int getByte(int byteIdx) {
         return 0xFF & ((int)data[byteIdx]);
     }
 
+    @Override
     public int getBitsSize() {
         return bitsSize;
     }
 
+    @Override
     public int getSize() {
         return size;
     }
 
-    public int getReadBitPos () {
+    @Override
+    public int getReadBitPos() {
         return readBitPos;
     }
 
+    @Override
     public int getWriteBitPos() {
         return writeBitPos;
     }
 
-    public boolean isEOWR () {
+    @Override
+    public boolean isEOWR() {
         return writeBitPos >= bitsSize;
     }
 
-    public boolean isEORD () {
+    @Override
+    public boolean isEORD() {
         return readBitPos >= bitsSize;
     }
 
 
-    public int readBit () {
+    @Override
+    public int readBits(int bitsNum) {
+        if (readBitPos + bitsNum < bitsSize) {
+            int val = 0;
+            for (int i = 0; i < bitsSize; i++) {
+                val |= (data[readBitPos / 8] & BIT_POS[readBitPos & 7]) != 0 ? BIT_POS[i] : 0;
+                readBitPos++;
+            }
+            return val;
+        }
+
+        return 0xFFFFFFFF;
+    }
+
+    @Override
+    public int readBit() {
         if (readBitPos < bitsSize) {
             int val = (data[readBitPos / 8] & BIT_POS[readBitPos & 7]) != 0 ? 1 : 0;
             readBitPos++;
@@ -82,7 +104,8 @@ public class BitStream {
     }
 
 
-    public boolean write (boolean isSet) {
+    @Override
+    public boolean writeBit(boolean isSet) {
         if (writeBitPos < bitsSize) {
             if (isSet)
                 data[writeBitPos / 8] |= BIT_POS[writeBitPos & 7];
@@ -95,11 +118,13 @@ public class BitStream {
         return false;
     }
 
-    public boolean write (int bit) {
-        return write(bit != 0);
+    @Override
+    public boolean writeBit(int bit) {
+        return writeBit(bit != 0);
     }
 
-    public boolean write (int val, int bits) {
+    @Override
+    public boolean writeBits(int val, int bits) {
         while (bits > 0 && writeBitPos < bitsSize) {
             if ((val & 1) != 0)
                 data[writeBitPos / 8] |= BIT_POS[writeBitPos & 7];
@@ -114,7 +139,8 @@ public class BitStream {
         return bits == 0;
     }
 
-    public byte[] data () {
+    @Override
+    public byte[] data() {
         return data;
     }
 }

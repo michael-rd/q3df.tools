@@ -3,6 +3,7 @@ package org.q3df.test.demo;
 import org.junit.Assert;
 import org.junit.Test;
 import org.q3df.common.BitStream;
+import org.q3df.common.BitStreamWriter;
 
 public class BitStreamTest {
 
@@ -10,31 +11,31 @@ public class BitStreamTest {
     public void testBitOrder () {
         BitStream stream = new BitStream(new byte[]{0}, 8);
 
-        stream.write(1);
-        stream.write(0);
-        stream.write(1);
-        stream.write(0);
-        stream.write(1);
-        stream.write(1);
-        stream.write(1);
-        Assert.assertTrue(stream.write(1));
+        int testBits[] = {1,0,1,0,1,1,1,1};
 
-        System.out.println(stream.asInt(0));
+        for (int b : testBits) {
+            Assert.assertTrue(stream.writeBit(b));
+        }
+        System.out.println(stream.getByte(0));
 
-        Assert.assertEquals(0b11110101, stream.asInt(0));
-
+        Assert.assertEquals(0b11110101, stream.getByte(0));
         Assert.assertTrue(stream.isEOWR());
+
+        for (int b : testBits)
+            Assert.assertEquals(b, stream.readBit());
+
+        Assert.assertTrue(stream.isEORD());
     }
 
     @Test
     public void testValues () {
-        BitStream stream = new BitStream(new byte[8]);
-        stream.write(0, 4);    // 0000
-        stream.write(0b1100, 4);  // 1100
-        stream.write(0xAB, 8);
+        BitStreamWriter stream = new BitStream(new byte[8]);
+        stream.writeBits(0, 4);    // 0000
+        stream.writeBits(0b1100, 4);  // 1100
+        stream.writeBits(0xAB, 8);
 
-        Assert.assertEquals(0b11000000, stream.asInt(0));
-        Assert.assertEquals(0xAB, stream.asInt(1));
+        Assert.assertEquals(0b11000000, stream.getByte(0));
+        Assert.assertEquals(0xAB, stream.getByte(1));
 
         Assert.assertTrue(!stream.isEOWR());
     }

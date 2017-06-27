@@ -1,6 +1,7 @@
 package org.q3df.common.msg;
 
-import org.q3df.common.BitStream;
+import org.q3df.common.BitStreamReader;
+import org.q3df.common.BitStreamWriter;
 
 public class Q3Huffman {
 
@@ -38,21 +39,15 @@ public class Q3Huffman {
     }
 
 
-    public static HuffSymbol writeSym (int val, BitStream stream) {
-
+    public static void writeSym (int val, BitStreamWriter writer) {
         HuffSymbol huffSymbol = sym[val & 0xFF];
-        val = huffSymbol.getValue();
-        int len = huffSymbol.getBitsLen();
-        while (len > 0) {
-//            stream.write(val & BIT_P)
-        }
-        throw  new RuntimeException("not implemented");
+        writer.writeBits(huffSymbol.value, huffSymbol.bitsLen);
     }
 
-    public static HuffSymbol readSym (BitStream stream) {
+    public static HuffSymbol readSym (BitStreamReader reader) {
         int path = 0b10;
 
-        while ((path |= stream.readBit()) <= MAX_PATH_VALUE) {
+        while ((path |= reader.readBit()) <= MAX_PATH_VALUE) {
             HuffSymbol sym = sym_table [path];
 
             if (sym.isValid())
