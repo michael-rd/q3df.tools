@@ -1,5 +1,6 @@
 package org.q3df.common.serialize;
 
+import org.q3df.common.msg.MessageDataReader;
 import org.q3df.common.msg.Q3HuffmanCoder;
 
 class FieldMapperImpl<E,T> implements FieldMapper<E> {
@@ -28,5 +29,10 @@ class FieldMapperImpl<E,T> implements FieldMapper<E> {
     @Override
     public void read(Q3HuffmanCoder.Decoder decoder, E state) {
         setter.setValue(state, valueReader.read(decoder));
+    }
+
+    @Override
+    public void read(MessageDataReader reader, E state) {
+        setter.setValue(state, valueReader.read(reader));
     }
 }

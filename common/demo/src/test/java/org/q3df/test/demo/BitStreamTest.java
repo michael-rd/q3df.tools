@@ -2,8 +2,8 @@ package org.q3df.test.demo;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.q3df.common.BitStream;
-import org.q3df.common.BitStreamWriter;
+import org.q3df.common.msg.BitStream;
+import org.q3df.common.msg.BitStreamWriter;
 
 public class BitStreamTest {
 

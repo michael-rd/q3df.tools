@@ -1,4 +1,6 @@
-package org.q3df.common;
+package org.q3df.common.msg;
+
+import org.q3df.common.Utils;
 
 /**
  * Created by michael on 21.06.17.
@@ -77,12 +79,15 @@ public class BitStream implements BitStreamReader, BitStreamWriter {
         return readBitPos >= bitsSize;
     }
 
+    public String dumpBuffer () {
+        return Utils.bytesToHex(this.data);
+    }
 
     @Override
     public int readBits(int bitsNum) {
         if (readBitPos + bitsNum < bitsSize) {
             int val = 0;
-            for (int i = 0; i < bitsSize; i++) {
+            for (int i = 0; i < bitsNum; i++) {
                 val |= (data[readBitPos / 8] & BIT_POS[readBitPos & 7]) != 0 ? BIT_POS[i] : 0;
                 readBitPos++;
             }

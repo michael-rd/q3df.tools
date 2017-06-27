@@ -2,6 +2,8 @@ package org.q3df.common.serialize;
 
 import org.q3df.common.Const;
 import org.q3df.common.Utils;
+import org.q3df.common.msg.MessageDataReader;
+import org.q3df.common.msg.Q3HuffmanCoder;
 import org.q3df.common.struct.TrType;
 
 public class ReaderFactory {
@@ -19,15 +21,45 @@ public class ReaderFactory {
     }
 
     public static ValueReader<Integer> intBitsReader (final int size) {
-        return decoder -> decoder.readBits(size);
+        return new ValueReader<Integer>() {
+            @Override
+            public Integer read(Q3HuffmanCoder.Decoder decoder) {
+                return decoder.readBits(size);
+            }
+
+            @Override
+            public Integer read(MessageDataReader reader) {
+                return reader.readBits(size);
+            }
+        };
     }
 
     public static ValueReader<TrType> trTypeValueReader () {
-        return decoder -> Utils.enumByOrdinal(TrType.class, decoder.readByte());
+        return new ValueReader<TrType>() {
+            @Override
+            public TrType read(Q3HuffmanCoder.Decoder decoder) {
+                return Utils.enumByOrdinal(TrType.class, decoder.readByte());
+            }
+
+            @Override
+            public TrType read(MessageDataReader reader) {
+                return Utils.enumByOrdinal(TrType.class, reader.readByte());
+            }
+        };
     }
 
     public static ValueReader<Float> floatReader () {
-        return decoder -> decoder.readFloat();
+        return new ValueReader<Float>() {
+            @Override
+            public Float read(Q3HuffmanCoder.Decoder decoder) {
+                return decoder.readFloat();
+            }
+
+            @Override
+            public Float read(MessageDataReader reader) {
+                return reader.readFloat();
+            }
+        };
     }
 
     // encoded by scheme: full or 13-bit float value, depends on first bit value
@@ -58,17 +90,29 @@ public class ReaderFactory {
         }
     } ...
   */
-        return decoder -> {
-//            if (decoder.readBits(1) == 0)
-//                return 0.0f;
-
-            if (decoder.readBits(1) == 0) {
-                int trunc = decoder.readBits(Const.FLOAT_INT_BITS);
-                trunc -= Const.FLOAT_INT_BIAS;
-                return Float.intBitsToFloat(trunc);
+        return new ValueReader<Float>() {
+            @Override
+            public Float read(Q3HuffmanCoder.Decoder decoder) {
+                if (decoder.readBits(1) == 0) {
+                    int trunc = decoder.readBits(Const.FLOAT_INT_BITS);
+                    trunc -= Const.FLOAT_INT_BIAS;
+                    return Float.intBitsToFloat(trunc);
+                }
+                else {
+                    return decoder.readFloat();
+                }
             }
-            else {
-                return decoder.readFloat();
+
+            @Override
+            public Float read(MessageDataReader reader) {
+                if (reader.readBits(1) == 0) {
+                    int trunc = reader.readBits(Const.FLOAT_INT_BITS);
+                    trunc -= Const.FLOAT_INT_BIAS;
+                    return Float.intBitsToFloat(trunc);
+                }
+                else {
+                    return reader.readFloat();
+                }
             }
         };
     }

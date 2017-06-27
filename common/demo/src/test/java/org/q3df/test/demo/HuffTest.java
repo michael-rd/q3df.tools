@@ -14,9 +14,9 @@ public class HuffTest {
             Q3Huffman.HuffSymbol sym = Q3Huffman.byteSymbol(i);
             Assert.assertTrue(sym.isValid());
 
-            System.out.println(String.format("char=%d, len=%d, val=%d", i, sym.getBitsLen(), sym.getValue()));
+            System.out.println(String.format("char=%d, len=%d, val=%d", i, sym.getBitsLen(), sym.getHuffBits()));
 
-            Q3Huffman.HuffSymbol revSym = Q3Huffman.findSymbol(sym.getValue(), sym.getBitsLen());
+            Q3Huffman.HuffSymbol revSym = Q3Huffman.findSymbol(sym.getHuffBits(), sym.getBitsLen());
 
             Assert.assertSame(sym, revSym);
         }

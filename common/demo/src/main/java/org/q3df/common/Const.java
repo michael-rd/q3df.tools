@@ -37,5 +37,8 @@ public class Const {
 
     // client.h
     public static final int MAX_PARSE_ENTITIES = 2048;
+    // '%'
+    public static final byte PERCENT_CHAR_BYTE = 37;
+    public static final byte DOT_CHAR_BYTE = 46;
 }
 

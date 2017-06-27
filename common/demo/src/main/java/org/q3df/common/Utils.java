@@ -39,4 +39,12 @@ public class Utils {
         }
         return null;
     }
+
+    public static int ANGLE2SHORT (float x) {
+        return ((int)(x*65536.0f/360.0f)) & 65535;
+    }
+
+    public static float SHORT2ANGLE (int x) {
+        return ((float)x*(360.0f/65536.0f));
+    }
 }

@@ -20,9 +20,6 @@ public class Q3HuffmanCoder {
     private static Logger logger = LoggerFactory.getLogger(Q3HuffmanCoder.class);
 
     static final int NYT = 0xFFFFFFFF;
-    // '%'
-    private static final byte PERCENT_CHAR_BYTE = 37;
-    private static final byte DOT_CHAR_BYTE = 46;
 
     static final int huff_paths[] = {
             0x0006, 0x003B, 0x00C8, 0x00EC, 0x01A1, 0x0111, 0x0090, 0x007F, 0x0035, 0x00B4, 0x00E9, 0x008B, 0x0093, 0x006D, 0x0139, 0x02AC,
@@ -276,8 +273,8 @@ public class Q3HuffmanCoder {
             }
 
             for (int i = 0; i < data.length; i++)
-                if (data[i] > 127 || data[i] == PERCENT_CHAR_BYTE)
-                    data[i] = DOT_CHAR_BYTE;
+                if (data[i] > 127 || data[i] == Const.PERCENT_CHAR_BYTE)
+                    data[i] = Const.DOT_CHAR_BYTE;
 
             return writeData(data, limit-1) && writeByte(0);
         }
@@ -295,7 +292,7 @@ public class Q3HuffmanCoder {
         }
 
         public boolean writeAngle16 (float angle) {
-            return writeShort (ANGLE2SHORT(angle));
+            return writeShort (Utils.ANGLE2SHORT(angle));
         }
     }
 
@@ -457,8 +454,8 @@ public class Q3HuffmanCoder {
 
                 // translate all fmt spec to avoid crash bugs
                 // don't allow higher ascii values
-                if (ch > 127 || ch == PERCENT_CHAR_BYTE)
-                    ch = DOT_CHAR_BYTE;
+                if (ch > 127 || ch == Const.PERCENT_CHAR_BYTE)
+                    ch = Const.DOT_CHAR_BYTE;
 
                 str[len] = (byte)ch;
                 len++;
@@ -480,7 +477,7 @@ public class Q3HuffmanCoder {
         }
 
         public float readAngle16 () {
-            return SHORT2ANGLE(readShort());
+            return Utils.SHORT2ANGLE(readShort());
         }
 
         public void readData (byte[] data, int len) {
@@ -595,17 +592,6 @@ public class Q3HuffmanCoder {
                 }
             }
         }
-    }
-
-
-
-
-    public static int ANGLE2SHORT (float x) {
-        return ((int)(x*65536.0f/360.0f)) & 65535;
-    }
-
-    public static float SHORT2ANGLE (int x) {
-        return ((float)x*(360.0f/65536.0f));
     }
 
 

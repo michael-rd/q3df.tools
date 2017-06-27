@@ -1,9 +1,12 @@
 package org.q3df.test.demo;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.q3df.common.Const;
 import org.q3df.common.Utils;
+import org.q3df.common.msg.MessageDataReader;
+import org.q3df.common.msg.MsgStreamFactory;
 import org.q3df.common.msg.Q3HuffmanCoder;
 import org.q3df.common.struct.EntityState;
 
@@ -12,8 +15,11 @@ import org.q3df.common.struct.EntityState;
  */
 public class MessageTest {
 
-    @Test
-    public void testReadDeltaEntity () {
+
+    static byte [] testData;
+
+    @BeforeClass
+    public static void init () {
         StringBuilder sb = new StringBuilder();
 
         sb.append("E9E5E19F3F8D3A6BC758CDF7EE96C19DEF69CA59207A10759CF33D4D79B3CF3F");
@@ -23,14 +29,40 @@ public class MessageTest {
         sb.append("95C67DFEB126073D9F57FA871E57C8DB389BDF5E6A3275505C21EE0D00000000");
         sb.append("0000000000000000000000000000000000000000000000000000000000000000");
 
-        byte[] data = Utils.fromHex(sb.toString());
+        testData = Utils.fromHex(sb.toString());
+    }
 
-        Q3HuffmanCoder.Decoder decoder = Q3HuffmanCoder.decoder(data);
+    @Test
+    public void testReadDeltaEntity01 () {
+
+        Q3HuffmanCoder.Decoder decoder = Q3HuffmanCoder.decoder(testData);
         EntityState est = new EntityState();
 
         int newnumber = decoder.readBits(Const.GENTITYNUM_BITS);
 
         Assert.assertTrue(decoder.readDeltaEntity(est, newnumber));
+
+        System.out.println(est.pos.trBase.vect[0]);
+
+        Assert.assertEquals(0x45678912, est.pos.trTime);
+        Assert.assertEquals(0x78EFABCD, est.pos.trDuration);
+        Assert.assertEquals(0xBBCCDDEE, est.apos.trTime);
+
+//        apos.trDelta[1] = 7.33f;
+
+        Assert.assertEquals(0.56f, est.pos.trBase.vect[0], 0.001);
+        Assert.assertEquals(7.33f, est.apos.trDelta.vect[1], 0.001);
+    }
+
+    @Test
+    public void testReadDeltaEntity02 () {
+
+        MessageDataReader msgReader = MsgStreamFactory.msgReader(testData);
+        EntityState est = new EntityState();
+
+        int newnumber = msgReader.readBits(Const.GENTITYNUM_BITS);
+
+        Assert.assertTrue(msgReader.readDeltaEntity(est, newnumber));
 
         System.out.println(est.pos.trBase.vect[0]);
 

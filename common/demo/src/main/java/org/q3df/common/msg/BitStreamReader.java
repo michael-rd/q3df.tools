@@ -1,4 +1,4 @@
-package org.q3df.common;
+package org.q3df.common.msg;
 
 public interface BitStreamReader {
     int getByte(int byteIdx);

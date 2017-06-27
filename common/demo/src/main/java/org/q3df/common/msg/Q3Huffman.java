@@ -1,62 +1,70 @@
 package org.q3df.common.msg;
 
-import org.q3df.common.BitStreamReader;
-import org.q3df.common.BitStreamWriter;
-
 public class Q3Huffman {
 
     public static final int EOF_SYM = 0xFFFFFFFF;
 
     public static final class HuffSymbol {
         private int bitsLen;
-        private int value;
-//        private int bitPath;
+        private int charVal;
+        private int huffBits;
 
-        public HuffSymbol(int value, int bitsLen) {
+        public HuffSymbol(int charVal, int huffBits, int bitsLen) {
             this.bitsLen = bitsLen;
-            this.value = value;
-//            this.bitPath = bitPath;
+            this.charVal = charVal;
+            this.huffBits = huffBits;
         }
 
         public int getBitsLen() {
             return bitsLen;
         }
 
-        public int getValue() {
-            return value;
+        public int getCharVal() {
+            return charVal;
+        }
+
+        public int getHuffBits() {
+            return huffBits;
         }
 
         public boolean isValid () {
-            return this.value != EOF_SYM;
+            return this.charVal != EOF_SYM;
         }
 
-        public static HuffSymbol createFromPath (int path) {
-            int len = bits_len (path);
+        public static HuffSymbol createFromPath (int huffpath, int charVal) {
+            int len = bits_len (huffpath);
             int mask = (0x7FFFFFFF >> (31 - len));
-            int val =  mask & path;
-            return new HuffSymbol(val, len);
+            int huffBits =  mask & huffpath;
+            return new HuffSymbol(charVal, huffBits, len);
         }
     }
 
 
-    public static void writeSym (int val, BitStreamWriter writer) {
+    public static boolean writeSym (int val, BitStreamWriter writer) {
         HuffSymbol huffSymbol = sym[val & 0xFF];
-        writer.writeBits(huffSymbol.value, huffSymbol.bitsLen);
+        return writer.writeBits(huffSymbol.huffBits, huffSymbol.bitsLen);
     }
 
     public static HuffSymbol readSym (BitStreamReader reader) {
-        int path = 0b10;
+        int path_mask = 0b10;
+        int bit = 1;
+        int rest = 0;
+        int path = path_mask;
 
-        while ((path |= reader.readBit()) <= MAX_PATH_VALUE) {
+        while (true) {
+            rest = rest | (reader.readBit() != 0 ? bit : 0);
+            path = path_mask | rest;
+            if (path > MAX_PATH_VALUE)
+                return NOT_FOUND;
+
             HuffSymbol sym = sym_table [path];
 
-            if (sym.isValid())
+            if (sym != null)
                 return sym;
 
-            path <<= 1;
+            path_mask <<= 1;
+            bit <<= 1;
         }
-
-        return NOT_FOUND;
     }
 
 
@@ -78,7 +86,7 @@ public class Q3Huffman {
 
     static final HuffSymbol sym[];
     static final HuffSymbol sym_table[] ;
-    static final HuffSymbol NOT_FOUND = new HuffSymbol(EOF_SYM, 32);
+    static final HuffSymbol NOT_FOUND = new HuffSymbol(EOF_SYM, EOF_SYM, 32);
 
 
     static {
@@ -106,7 +114,7 @@ public class Q3Huffman {
         MAX_PATH_LEN = 0;
         for (int i = 0; i< huff_paths.length; i++) {
             MAX_PATH_VALUE = Math.max(MAX_PATH_VALUE, huff_paths[i]);
-            sym[i] = HuffSymbol.createFromPath(huff_paths[i]);
+            sym[i] = HuffSymbol.createFromPath(huff_paths[i], i);
             MAX_PATH_LEN = Math.max(MAX_PATH_LEN, sym[i].getBitsLen());
         }
         sym_table = new HuffSymbol[MAX_PATH_VALUE+1];
