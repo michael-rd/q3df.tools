@@ -1,5 +1,6 @@
 package org.q3df.common.msg;
 
+import oracle.jrockit.jfr.events.Bits;
 import org.q3df.common.Utils;
 
 /**
@@ -29,6 +30,10 @@ public class BitStream implements BitStreamReader, BitStreamWriter {
     private int readBitPos;
     private int writeBitPos;
 
+    public BitStream (int bits) {
+        this (new byte[(int)Math.ceil(bits/8)], bits);
+    }
+
     public BitStream(byte[] data) {
         this (data, data.length * 8);
     }
@@ -42,6 +47,14 @@ public class BitStream implements BitStreamReader, BitStreamWriter {
         this.size = Math.min(data.length, (int)Math.ceil((double)bitsLen/8.0));
         this.readBitPos = 0;
         this.writeBitPos = 0;
+    }
+
+    public void rewindWrite () {
+        this.writeBitPos = 0;
+    }
+
+    public void rewindRead () {
+        this.readBitPos = 0;
     }
 
     @Override
