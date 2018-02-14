@@ -68,8 +68,8 @@ public class HuffmanTest {
     public void test004() {
         Q3HuffmanCoder.Encoder encoder = Q3HuffmanCoder.encoder(16);
 
-        encoder.writeFload(3.14f);
-        encoder.writeFload(89.20170609f);
+        encoder.writeFloat(3.14f);
+        encoder.writeFloat(89.20170609f);
         encoder.writeAngle16(49.2f);
 
         Assert.assertEquals("20EA3D9F013DED919F2B110000000000", encoder.dumpBuffer());
