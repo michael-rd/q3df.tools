@@ -27,6 +27,12 @@ public class DemoParsers {
         return new InputStreamMessageWalker(is, p).parse();
     }
 
+    public static DemoDataFacade getDemoData (InputStream is) throws  IOException {
+        BaseDemoMessageParser parser = new BaseDemoMessageParser();
+        parse (is, parser);
+        return parser.getDemoData();
+    }
+
 
 
     public interface DemoStreamParser extends AutoCloseable, Closeable{
@@ -43,12 +49,14 @@ public class DemoParsers {
         private ByteBuffer buffer;
         private DemoMessage message;
         private long totalRead;
+        private long totalMessages;
 
         public InputStreamMessageWalker(InputStream inputStream, DemoMessageParser parser) {
             this.inputStream = inputStream;
             this.parser = parser;
             this.buffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
             this.message = new DemoMessage();
+            this.totalMessages = 0;
         }
 
         @Override
@@ -64,14 +72,14 @@ public class DemoParsers {
                 int msgLen = buffer.getInt();
 
                 if (sequence == -1 && msgLen == -1) {
-                    logger.debug("EOF is reached in a normal way");
+//                    logger.debug("EOF is reached in a normal way");
                     break;
                 }
 
 //                logger.debug("read next message: sequence = {}, size={} ({} - {})", sequence, msgLen, Integer.toHexString(sequence), Integer.toHexString(msgLen));
 
                 if (msgLen > Const.MESSAGE_MAX_SIZE || msgLen <= 0) {
-                    logger.debug("Wow, msg-len is wrong, exit");
+//                    logger.debug("Wow, msg-len is wrong, exit");
                     return false;
                 }
 
@@ -82,6 +90,7 @@ public class DemoParsers {
                     logger.debug("wtf? unable to read required {} number of bytes, in fact = {}", msgLen, readBytes);
                 }
                 else {
+                    totalMessages++;
                     // parse packets from message buffer
                     //parsePackets(msgBuffer, msgLen, clientState);
                     if (!this.parser.parse(message)) {
@@ -93,7 +102,7 @@ public class DemoParsers {
                 buffer.clear();
             }
 
-            logger.debug("total read = {}", totalRead );
+            logger.debug("total read = {}, messages={}", totalRead, totalMessages );
 
             return false;
         }

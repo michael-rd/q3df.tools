@@ -7,6 +7,8 @@ import org.q3df.common.struct.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 import static org.q3df.common.Const.MAX_GENTITIES;
 
 /**
@@ -19,6 +21,10 @@ public class BaseDemoMessageParser implements DemoMessageParser {
 
     private ClientState client;
     private ClientConnection clc;
+
+    private int snapshots;
+    String demoTimeCmd;
+//    private int frames;
 
     public BaseDemoMessageParser() {
         this.clc = new ClientConnection();
@@ -43,31 +49,38 @@ public class BaseDemoMessageParser implements DemoMessageParser {
             En_SVC cmd = En_SVC.find(cmdId);
 
             if (cmd == null) {
-                logger.error("unknown command {}", cmdId);
+//                logger.error("unknown command {}", cmdId);
                 return;
             }
 
             if (cmd == En_SVC.EOF) {
-                logger.debug("EOF gamestate");
+//                logger.debug("EOF gamestate");
                 break;
             }
 
             if (cmd == En_SVC.CONFIGSTRING) {
                 int key = decoder.readShort();
                 if (key < 0 || key > Const.MAX_CONFIGSTRINGS) {
-                    logger.debug("wrong config string key {}", key);
+//                    logger.debug("wrong config string key {}", key);
                     return;
                 }
 
                 String configString = decoder.readBigString();
-                logger.debug("config string [{}] = {}", key, configString);
+               // logger.debug("config string [{}] = {}", key, configString);
+
+//                if (key == 0) {
+//                    if (!configString.contains("version\\iodfe_dfwc2017"))
+//                        System.out.print(" - !invalid client engine");
+//                    else
+//                        System.out.print(".. ok");
+//                }
 
                 client.gameState.put(key, configString);
             } else if (cmd == En_SVC.BASELINE) {
                 int newnum = decoder.readBits(Const.GENTITYNUM_BITS);
 
                 if (newnum < 0 || newnum >= MAX_GENTITIES) {
-                    logger.error("Baseline number out of range: {}", newnum);
+//                    logger.error("Baseline number out of range: {}", newnum);
                     return;
                 }
 
@@ -78,12 +91,13 @@ public class BaseDemoMessageParser implements DemoMessageParser {
                 }
 
                 if (!decoder.readDeltaEntity(es, newnum)) {
-                    logger.error("unable to parse delta-entity state");
+//                    logger.error("unable to parse delta-entity state");
                     return;
-                } else
-                    logger.debug("delta-entity parsed: {}", newnum);
+                }
+//                else
+//                    logger.debug("delta-entity parsed: {}", newnum);
             } else {
-                logger.error("Parse GameState: bad command {} (byte : {})", cmd, cmdId);
+//                logger.error("Parse GameState: bad command {} (byte : {})", cmd, cmdId);
                 return;
             }
         }
@@ -91,15 +105,20 @@ public class BaseDemoMessageParser implements DemoMessageParser {
         clc.clientNum = decoder.readLong();
         clc.checksumFeed = decoder.readLong();
 
-        logger.debug("Parse GameState end: clientNum={}, checksumFeed={}", clc.clientNum, clc.checksumFeed);
+//        logger.debug("Parse GameState end: clientNum={}, checksumFeed={}", clc.clientNum, clc.checksumFeed);
     }
 
+//    Pattern
     private void parseCommandString(Q3HuffmanCoder.Decoder decoder) {
 //        logger.debug("command = {}", En_SVC.SERVERCOMMAND);
         int sequence = decoder.readLong();
         String command = decoder.readString();
 
-        logger.debug("server cmd, seq={}, cmd={}", sequence, command);
+        //logger.debug("server cmd, seq={}, cmd={}", sequence, command);
+
+        if (command.startsWith("print \"Time performed")) {
+            demoTimeCmd = command;
+        }
 
         if (clc.serverCommandSequence >= sequence) {
             return;
@@ -115,6 +134,7 @@ public class BaseDemoMessageParser implements DemoMessageParser {
     // CL_ParseSnapshot
     private void parseSnapshot(Q3HuffmanCoder.Decoder decoder) {
 //        logger.debug("parse snapshot");
+        snapshots++;
         CLSnapshot newSnap = new CLSnapshot();
         CLSnapshot old = null;
         newSnap.serverCommandNum = clc.serverCommandSequence;
@@ -144,13 +164,13 @@ public class BaseDemoMessageParser implements DemoMessageParser {
             old = client.snapshots[newSnap.deltaNum & Const.PACKET_MASK];
             if (old == null || !old.valid) {
                 // should never happen
-                logger.error("Delta from invalid frame (not supposed to happen!)");
+//                logger.error("Delta from invalid frame (not supposed to happen!)");
             } else if (old.messageNum != newSnap.deltaNum) {
                 // The frame that the server did the delta from
                 // is too old, so we can't reconstruct it properly.
-                logger.error("Delta frame too old.");
+//                logger.error("Delta frame too old.");
             } else if ((client.parseEntitiesNum - old.parseEntitiesNum) > (Const.MAX_PARSE_ENTITIES - 128)) {
-                logger.error("Delta parseEntitiesNum too old");
+//                logger.error("Delta parseEntitiesNum too old");
             } else {
                 newSnap.valid = true;  // valid delta parse
             }
@@ -160,7 +180,7 @@ public class BaseDemoMessageParser implements DemoMessageParser {
         int len = decoder.readByte();
 
         if (len > newSnap.areamask.length) {
-            logger.error("CL_ParseSnapshot: Invalid size {} for areamask", len);
+//            logger.error("CL_ParseSnapshot: Invalid size {} for areamask", len);
             return;
         }
 
@@ -240,7 +260,7 @@ public class BaseDemoMessageParser implements DemoMessageParser {
             }
 
             if (decoder.isEOD()) {
-                logger.error ("ERR_DROP, CL_ParsePacketEntities: end of message");
+//                logger.error ("ERR_DROP, CL_ParsePacketEntities: end of message");
                 return;
             }
 
@@ -355,7 +375,7 @@ public class BaseDemoMessageParser implements DemoMessageParser {
                     parseCommandString(decoder);
                     break;
                 case GAMESTATE:
-                    logger.debug("command = {}", cmd);
+//                    logger.debug("command = {}", cmd);
                     parseGameState(decoder);
                     break;
                 case SNAPSHOT:
@@ -369,7 +389,11 @@ public class BaseDemoMessageParser implements DemoMessageParser {
             }
         }
 
-        logger.debug("end of message packet");
+//        logger.debug("end of message packet");
         return true;
+    }
+
+    public DemoDataFacade getDemoData () {
+        return new DemoDataFacade(client.gameState, snapshots, demoTimeCmd);
     }
 }
