@@ -238,7 +238,7 @@ public class Q3HuffmanCoder {
         }
 
 
-        public boolean writeFload (float f) {
+        public boolean writeFloat(float f) {
             return writeNum(Float.floatToRawIntBits(f), 4);
         }
 
