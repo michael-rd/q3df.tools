@@ -1,5 +1,6 @@
 package org.q3df.demo;
 
+import org.q3df.common.Const;
 import org.q3df.common.struct.GameState;
 
 import java.util.HashMap;
@@ -11,16 +12,18 @@ public class DemoDataFacade {
 
 //    public static Pattern DEMO_TIME_PATTERN = Pattern.compile("^Time performed by [^:]+ : ([0-9:]+) .*$");
 
-    Map<String, String> mainConfig;
+    Map<String, String> demoClientConfig;
+    Map<String, String> demoPlayerConfig;
+    Map<String, String> demoGameConfig;
+
     int snapshots;
     String demoTime;
 
     public DemoDataFacade (GameState state, int snapshots, String demoTimeCmd) {
 
-        mainConfig = new HashMap<>();
-        String[] cfg = state.get(0).split("\\\\");
-        for (int i=0; i< cfg.length / 2; i++)
-            mainConfig.put(cfg[i*2+1].toLowerCase(), cfg[i*2+2]);
+        unpackCfgString(state.get(Const.DEMO_CFG_FIELD_CLIENT), demoClientConfig = new HashMap<>());
+        unpackCfgString(state.get(Const.DEMO_CFG_FIELD_GAME), demoGameConfig = new HashMap<>());
+        unpackCfgString(state.get(Const.DEMO_CFG_FIELD_PLAYER), demoPlayerConfig = new HashMap<>());
 
         this.snapshots = snapshots;
 
@@ -37,6 +40,30 @@ public class DemoDataFacade {
 //            demoTime = m.group(1);
     }
 
+    private static void unpackCfgString (String str, Map<String,String> map) {
+        if (str == null || str.isEmpty())
+            return;
+
+        int begin = str.charAt(0) == '\\' ? 1 : 0;
+
+        String[] cfg = str.split("\\\\");
+
+        for (int i = begin; i < cfg.length; i+=2)
+            map.put(cfg[i].toLowerCase(), cfg[i+1]);
+    }
+
+    public Map<String, String> getDemoPlayerConfig() {
+        return demoPlayerConfig;
+    }
+
+    public Map<String, String> getDemoGameConfig() {
+        return demoGameConfig;
+    }
+
+    public Map<String, String> getDemoClientConfig() {
+        return demoClientConfig;
+    }
+
     public String getDemoTime() {
         return demoTime;
     }
@@ -46,7 +73,7 @@ public class DemoDataFacade {
     }
 
     public String getEngineString () {
-        return mainConfig.get("version");
+        return demoClientConfig.get("version");
     }
 
 

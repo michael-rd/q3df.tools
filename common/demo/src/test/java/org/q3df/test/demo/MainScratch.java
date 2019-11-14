@@ -1,7 +1,7 @@
 package org.q3df.test.demo;
 
 
-import org.q3df.demo.BaseDemoMessageParser;
+import org.q3df.demo.DemoDataFacade;
 import org.q3df.demo.DemoParsers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +14,7 @@ import java.net.URL;
 public class MainScratch {
 
 
-    public static String test_file = "lucy-vchrkn[df.vq3]00.44.048(MichaelRD.Russia).dm_68";
+    public static String test_file = "dfwc2019-1[df.vq3]00.25.488(lokki.Russia)_8883.dm_68";
 
     private static Logger logger = LoggerFactory.getLogger(MainScratch.class);
 
@@ -26,7 +26,13 @@ public class MainScratch {
         logger.debug("logger is working");
 
         try {
-            DemoParsers.parse(url, new BaseDemoMessageParser());
+            //DemoParsers.parse(url, new BaseDemoMessageParser());
+            DemoDataFacade dataFacade = DemoParsers.getDemoData(url.openStream());
+            System.out.println("Client config:" + dataFacade.getDemoClientConfig().toString());
+
+            System.out.println("Player config:" + dataFacade.getDemoPlayerConfig().toString());
+
+            System.out.println("Game config:" + dataFacade.getDemoGameConfig().toString());
         }
         catch (Exception e) {
             e.printStackTrace();

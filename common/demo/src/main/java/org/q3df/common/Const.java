@@ -10,6 +10,11 @@ public class Const {
 
     public static final int MAX_CONFIGSTRINGS = 1024;
 
+    public static final int DEMO_CFG_FIELD_CLIENT = 0;
+    public static final int DEMO_CFG_FIELD_GAME = 1;
+    public static final int DEMO_CFG_FIELD_PLAYER = 544;
+
+
     public static final int GENTITYNUM_BITS = 10;
     public static final int MAX_GENTITIES = 1<<GENTITYNUM_BITS;
 
